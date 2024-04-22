@@ -23,11 +23,7 @@ export async function AdminApplication() {
                     </div>
                 )}
 
-                <AppIcon
-                    href={"/dashboard/settings?tab=application"}
-                    icon="/assets/add-application.png"
-                    name="create"
-                />
+                <AppIcon href={"/dashboard/settings/application"} icon="/assets/add-application.png" name="create" />
             </div>
         </div>
     )
