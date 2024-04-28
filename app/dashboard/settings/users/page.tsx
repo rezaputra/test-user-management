@@ -14,11 +14,9 @@ import { Group } from "@prisma/client"
 import { UserApplicationMenu } from "./_components/user-application-menu"
 
 async function UsersPage() {
-    const user = await currentUser()
-
     const users = await db.user.findMany({
         include: {
-            group: true,
+            group: { include: { menuAccesses: { include: { menu: true } } } },
         },
     })
 
@@ -53,7 +51,7 @@ async function UsersPage() {
                                 <ChangeGroup groups={groups} userGroup={user.group as Group} user={user} />
                             </TableCell>
                             <TableCell className=" text-center">
-                                <UserApplicationMenu />
+                                <UserApplicationMenu group={user.group as any} role={user.role as string} />
                             </TableCell>
                             <TableCell className="  w-full flex space-x-2 items-center justify-center">
                                 <EditUser user={user} />

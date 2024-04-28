@@ -19,13 +19,38 @@ export async function addMenu(values: z.infer<typeof AddMenuSchema>) {
         if (!validateFields.success) {
             return { error: "Invalid fields" }
         }
-        const { applicationId, name } = validateFields.data
 
-        await db.menu.create({ data: { name, applicationId } })
+        const { applicationId, name, source } = validateFields.data
+
+        // Step 1: Create a new menu
+        const newMenu = await db.menu.create({ data: { name, applicationId, source } })
+
+        // Step 2: Get groups associated with the application
+        const groupsWithApplication = await db.groupApplication.findMany({
+            where: { applicationId },
+            include: { group: true },
+        })
+
+        // Step 3: Create menu accesses for each group
+        const menuAccesses = groupsWithApplication.map(async (groupApplication) => {
+            const { group } = groupApplication
+            await db.menuAccess.create({
+                data: {
+                    groupId: group.id,
+                    menuId: newMenu.id,
+                    canCreate: false,
+                    canRead: false,
+                    canUpdate: false,
+                    canDelete: false,
+                },
+            })
+        })
+        await Promise.all(menuAccesses)
 
         revalidatePath("/dashboard/settings/menu")
         return { success: "Menu added successfully" }
-    } catch {
+    } catch (error) {
+        console.error("Error adding menu:", error)
         return { error: "Something went wrong!" }
     }
 }

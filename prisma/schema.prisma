@@ -90,6 +90,7 @@ model MenuAccess {
 model Menu {
     id            String       @id @default(auto()) @map("_id") @db.ObjectId
     name          String
+    source        String
     applicationId String       @db.ObjectId
     application   Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
     menuAccesses  MenuAccess[]

@@ -12,9 +12,9 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { AddMenuSchema } from "@/schemas/menu"
+import { AddMenuSchema, EditMenuSchema } from "@/schemas/menu"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Application } from "@prisma/client"
+import { Application, Menu } from "@prisma/client"
 import {
     Select,
     SelectContent,
@@ -30,32 +30,33 @@ import { FormError } from "@/components/form/form-error"
 import { FormSuccess } from "@/components/form/form-success"
 import { Input } from "@/components/ui/input"
 import { useState, useTransition } from "react"
-import { addMenu } from "@/actions/add-menu"
+import { Edit } from "lucide-react"
+import { editMenu } from "@/actions/edit-menu"
 
-interface AddMenuProps {
-    applications: Application[]
+interface EditMenuProps {
+    menu: Menu
 }
 
-export function AddMenu({ applications }: AddMenuProps) {
+export function EditMenu({ menu }: EditMenuProps) {
     const [isPending, startTransition] = useTransition()
     const [error, setError] = useState<string | undefined>()
     const [success, setSuccess] = useState<string | undefined>()
 
-    const form = useForm<z.infer<typeof AddMenuSchema>>({
-        resolver: zodResolver(AddMenuSchema),
+    const form = useForm<z.infer<typeof EditMenuSchema>>({
+        resolver: zodResolver(EditMenuSchema),
         defaultValues: {
-            applicationId: "",
-            name: "",
-            source: "",
+            id: menu.id,
+            name: menu.name,
+            source: menu.source,
         },
     })
 
-    const onSubmit = (values: z.infer<typeof AddMenuSchema>) => {
+    const onSubmit = (values: z.infer<typeof EditMenuSchema>) => {
         setError(undefined)
         setSuccess(undefined)
 
         startTransition(() => {
-            addMenu(values)
+            editMenu(values)
                 .then((data) => {
                     if (data?.error) {
                         setError(data.error)
@@ -70,7 +71,11 @@ export function AddMenu({ applications }: AddMenuProps) {
     return (
         <Dialog>
             <Button asChild variant="default" size="sm">
-                <DialogTrigger>Add Menu</DialogTrigger>
+                <Button size="sm" asChild>
+                    <DialogTrigger>
+                        <Edit className="size-4" />
+                    </DialogTrigger>
+                </Button>
             </Button>
             <DialogContent>
                 <div className="space-y-6">
@@ -82,33 +87,6 @@ export function AddMenu({ applications }: AddMenuProps) {
                     <Form {...form}>
                         <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
                             <div className="space-y-4">
-                                <FormField
-                                    control={form.control}
-                                    name="applicationId"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Choose Application</FormLabel>
-                                            <FormControl>
-                                                <Select onValueChange={field.onChange}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select application" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectGroup>
-                                                            <SelectLabel>Select application</SelectLabel>
-                                                            {applications.map((application, idx) => (
-                                                                <SelectItem key={idx} value={application.id}>
-                                                                    {application.name}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectGroup>
-                                                    </SelectContent>
-                                                </Select>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
                                 <FormField
                                     control={form.control}
                                     name="name"
